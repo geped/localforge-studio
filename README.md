@@ -1,57 +1,78 @@
-# FileForge Studio - Local Setup Guide
+# LocalForge Studio
 
-Questa guida ti aiuterà a configurare ed eseguire **FileForge Studio** sul tuo computer locale.
+Suite desktop locale per Windows che unisce due strumenti in un unico launcher Electron:
 
-## Requisiti Preliminari
+- **FileForge Studio** — 20+ strumenti per PDF e immagini (converti, comprimi, unisci, firma, rimozione sfondo, QR code, barcode, e altro)
+- **LocalSync Bridge** — trasferimento file LAN via QR code, con supporto multi-utente e stream in tempo reale
 
-Assicurati di avere installato:
-- [Node.js](https://nodejs.org/) (Versione 18.x o superiore)
-- Un terminale (Prompt dei comandi, PowerShell, o Terminale su macOS/Linux)
-- Un editor di testo (consigliato [VS Code](https://code.visualstudio.com/))
+## Download
 
-## Installazione
+La release ufficiale è disponibile su GitHub:
 
-1. **Estrai il progetto**: Scarica il file ZIP dal Firebase Studio ed estrailo in una cartella sul tuo desktop.
-2. **Apri il terminale**: Naviga all'interno della cartella estratta.
-3. **Installa le dipendenze**: Esegui il comando seguente per installare tutti i pacchetti necessari:
-   ```bash
-   npm install
-   ```
+**[→ Releases v1.0.0](https://github.com/geped/localforge-studio/releases/tag/v1.0.0)**
 
-## Configurazione
+`LocalForge-Studio-Setup-1.0.0.exe` · Windows 10/11 x64 · ~105 MB
 
-Crea un file chiamato `.env` nella cartella principale del progetto e aggiungi la tua chiave API per la rimozione dello sfondo:
+## Stack
 
-```env
-REMOVEBG_API_KEY=tua_chiave_qui
-```
+| Layer | Tecnologie |
+|---|---|
+| Desktop shell | Electron 41 |
+| Frontend | Next.js 15 (App Router), React 19, Tailwind CSS |
+| Backend | Express, Socket.io, HTTPS self-signed |
+| Build | `output: standalone` + electron-builder (NSIS) |
 
-## Esecuzione
-
-### Avvio Rapido (Windows)
-
-Utilizza il file `avvia_fileforge.bat` per un avvio automatizzato. Lo script include:
-- **Gestione Processi**: Termina eventuali processi Node.js rimasti aperti.
-- **Installazione Automatica**: Esegue `npm install` per garantire che le dipendenze siano aggiornate.
-- **Configurazione**: Imposta la porta su **3001** e mostra l'IP locale per l'accesso da smartphone/tablet.
-- **Avvio**: Apre automaticamente il browser all'indirizzo http://localhost:3001/fileforge.
-
-### Avvio Manuale
-
-Per avviare l'applicazione manualmente da terminale:
+## Sviluppo locale
 
 ```bash
-npm run dev
+# Installa dipendenze
+npm install
+
+# Crea il file .env (vedi .env.example)
+cp .env.example .env
+
+# Avvia in modalità dev (Electron + Next.js dev server)
+npm run electron:dev
 ```
 
-L'applicazione sarà disponibile all'indirizzo [http://localhost:3000](http://localhost:3000).
+## Build
 
-## Struttura del Progetto
+```bash
+# Build standalone + pacchettizza .exe
+npm run electron:build
+```
 
-- `src/app`: Logica delle pagine e routing (Next.js App Router).
-- `src/components/tools`: Tutti gli strumenti di manipolazione (PDF, Immagini, AI).
-- `src/ai/flows`: Logica dei flussi Genkit per le funzioni AI.
-- `public`: Asset statici.
+L'installer viene generato in `dist/`.
+
+## Variabili d'ambiente
+
+Copia `.env.example` in `.env` e inserisci le tue chiavi:
+
+```env
+GEMINI_API_KEY=        # AI text-to-image
+REMOVEBG_API_KEY=      # Rimozione sfondo (remove.bg)
+```
+
+Senza le chiavi l'app funziona normalmente — solo le funzioni AI risultano disabilitate.
+
+## Struttura
+
+```
+electron/          # Main process, launcher, splash, welcome
+src/
+  app/             # Next.js pages (App Router)
+  components/
+    tools/         # Tutti gli strumenti (PDF, immagini, sicurezza…)
+    shared/        # FileUpload, PdfThumbnail
+    ui/            # shadcn/ui components
+  ai/flows/        # Flussi Genkit (AI)
+public/
+  localforge/      # App mobile hub (portal QR)
+  localsync/       # UI LocalSync (mobile)
+docs/              # GitHub Pages (landing page)
+build-slim/        # Script prepare-standalone
+```
 
 ---
-© 2024 FileForge Studio. Strumenti veloci, sicuri, pronti all'uso.
+
+© 2026 LocalForge Studio · Pedro Sanchez

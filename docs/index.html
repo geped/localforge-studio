@@ -766,8 +766,8 @@
     <div class="container">
         <nav>
             <div class="nav-left">
-                <a href="index.html#projects" class="back-btn">
-                    <i class="fas fa-chevron-left"></i> portfolio
+                <a href="https://github.com/geped" class="back-btn" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-github"></i> GitHub
                 </a>
                 <div class="brand-logo">
                     <div class="brand-icon">
@@ -1054,31 +1054,19 @@
 
         <div class="download-section reveal">
 
-            <!-- Installer .exe — principale -->
+            <!-- Release GitHub -->
             <div class="dl-main">
                 <div class="dl-text">
-                    <div class="dl-badge"><i class="fas fa-star"></i> RACCOMANDATO</div>
-                    <div class="dl-title">LocalForge Studio — Installer</div>
-                    <div class="dl-sub">Installa l'app con setup guidato. Include tutto: LocalSync Bridge, FileForge Studio e aggiornamenti automatici.</div>
-                    <div class="dl-meta">LocalForge Studio Setup 1.0.0.exe · Windows 10/11 x64 · ~106 MB · Gratis</div>
+                    <div class="dl-badge"><i class="fab fa-github"></i> RILASCIATO SU GITHUB</div>
+                    <div class="dl-title">LocalForge Studio v1.0.0</div>
+                    <div class="dl-sub">Il progetto è open source e disponibile su GitHub. Trovi l'installer e il sorgente nella sezione Releases.</div>
+                    <div class="dl-meta">Windows 10/11 x64 · ~105 MB · Gratis · Open Source</div>
                 </div>
                 <div class="dl-actions">
-                    <a href="https://github.com/geped/localforge-studio/releases/download/v1.0.0/LocalForge-Studio-Setup-1.0.0.exe" class="dl-btn" id="dl-btn-exe" download>
-                        <i class="fas fa-download"></i> Scarica .exe
+                    <a href="https://github.com/geped/localforge-studio/releases/tag/v1.0.0" class="dl-btn" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-github"></i> Vedi Release
                     </a>
                 </div>
-            </div>
-
-            <!-- ZIP — versione legacy -->
-            <div class="dl-secondary">
-                <div class="dl-secondary-icon"><i class="fas fa-file-archive"></i></div>
-                <div class="dl-secondary-text">
-                    <div class="dl-secondary-title">Versione ZIP (legacy · richiede Node.js 18+)</div>
-                    <div class="dl-secondary-sub">localforge-studio.zip · launcher .bat · Windows</div>
-                </div>
-                <a href="https://github.com/geped/localforge-studio/releases/download/v1.0.0/localforge-studio.zip" class="dl-btn ghost" id="dl-btn-zip" download>
-                    <i class="fas fa-download"></i> Scarica ZIP
-                </a>
             </div>
 
         </div>
@@ -1093,33 +1081,10 @@
                 <span class="status-dot"></span>
                 LOCALE · OFFLINE · GRATIS
             </div>
-            <a href="https://pedrofolio.web.app/#projects" class="footer-back">← torna al portfolio</a>
+            <a href="https://github.com/geped" class="footer-back" target="_blank" rel="noopener noreferrer">← torna al profilo GitHub</a>
         </div>
     </div>
 </footer>
-
-<!-- DOWNLOAD OVERLAY -->
-<div class="dl-overlay" id="dl-overlay">
-    <div class="dl-popup">
-        <div class="dl-check"><i class="fas fa-check"></i></div>
-        <h3>Download avviato!</h3>
-        <p>Segui questi passaggi per completare l'installazione:</p>
-        <div class="dl-popup-steps">
-            <div class="dl-popup-step">
-                <span class="dl-popup-step-num">1</span>
-                Avvia il file <strong>.exe</strong> scaricato
-            </div>
-            <div class="dl-popup-step">
-                <span class="dl-popup-step-num">2</span>
-                Completa il setup guidato
-            </div>
-            <div class="dl-popup-step">
-                <span class="dl-popup-step-num">3</span>
-                Crea il tuo account al primo avvio
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
     /* Reveal on scroll */
@@ -1133,13 +1098,6 @@
         });
     }, { threshold: 0.08 });
     revealItems.forEach(el => obs.observe(el));
-
-    /* Download overlay — solo per .exe */
-    document.getElementById('dl-btn-exe').addEventListener('click', () => {
-        const overlay = document.getElementById('dl-overlay');
-        overlay.classList.add('active');
-        setTimeout(() => overlay.classList.remove('active'), 4500);
-    });
 </script>
 
 </body>
