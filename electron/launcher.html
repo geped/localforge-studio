@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LocalForge Studio</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a; color: #e2e8f0;
+      height: 100vh; display: flex; flex-direction: column;
+      overflow: hidden; user-select: none;
+    }
+    .titlebar {
+      height: 38px; background: #0a0a0a;
+      -webkit-app-region: drag;
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px;
+      flex-shrink: 0; border-bottom: 1px solid #111;
+    }
+    .titlebar-logo {
+      width: 20px; height: 20px; border-radius: 5px;
+      background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .titlebar-title { font-size: 11px; color: #475569; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; }
+
+    /* ── Views base ── */
+    .view {
+      flex: 1; display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 20px 48px 16px; overflow-y: auto;
+    }
+    .view.active { display: flex; }
+
+    /* ══════════════════════════════════════════════════════
+       NETWORK VIEW
+    ══════════════════════════════════════════════════════ */
+    #networkView { justify-content: center; }
+    .net-card {
+      width: 100%; max-width: 520px;
+      background: #111; border: 1px solid #1e1e1e;
+      border-radius: 20px; padding: 28px;
+      animation: fadeUp 0.4s ease both;
+    }
+    .net-header { text-align: center; margin-bottom: 22px; }
+    .net-icon {
+      width: 52px; height: 52px; border-radius: 15px;
+      background: linear-gradient(135deg, #0891b2, #059669);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
+    }
+    .net-title { font-size: 20px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+    .net-sub { font-size: 12.5px; color: #475569; line-height: 1.5; }
+
+    .net-info-box {
+      background: rgba(6,182,212,0.06); border: 1px solid rgba(6,182,212,0.15);
+      border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;
+      font-size: 12px; color: #475569; line-height: 1.6;
+    }
+    .net-info-box strong { color: #22d3ee; }
+
+    .iface-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+    .iface-item {
+      display: flex; align-items: center; gap: 12px;
+      background: #0d0d0d; border: 1px solid #1a1a1a;
+      border-radius: 10px; padding: 12px 14px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .iface-item:hover { border-color: #334155; background: #111; }
+    .iface-item.selected { border-color: #0891b2; background: rgba(8,145,178,0.07); }
+    .iface-radio {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid #334155; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .iface-item.selected .iface-radio { border-color: #0891b2; background: #0891b2; }
+    .iface-item.selected .iface-radio::after {
+      content: ''; width: 6px; height: 6px;
+      border-radius: 50%; background: #fff;
+    }
+    .iface-body { flex: 1; min-width: 0; }
+    .iface-name { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 2px; }
+    .iface-addr { font-family: 'Courier New', monospace; font-size: 12px; color: #22d3ee; }
+    .iface-badge {
+      font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 99px;
+      background: rgba(6,182,212,0.12); color: #22d3ee; text-transform: uppercase;
+    }
+    .net-loading { text-align: center; padding: 20px; font-size: 12px; color: #475569; }
+
+    /* ══════════════════════════════════════════════════════
+       CREATE ACCOUNT VIEW
+    ══════════════════════════════════════════════════════ */
+    .ca-card {
+      width: 100%; max-width: 520px;
+      background: #111; border: 1px solid #1e1e1e;
+      border-radius: 20px; padding: 28px;
+      animation: fadeUp 0.4s ease both;
+    }
+    .ca-header { text-align: center; margin-bottom: 22px; }
+    .ca-icon {
+      width: 52px; height: 52px; border-radius: 15px;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
+    }
+    .ca-title { font-size: 20px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+    .ca-sub { font-size: 12.5px; color: #475569; }
+
+    .admin-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.2);
+      color: #fbbf24; font-size: 11px; font-weight: 600;
+      padding: 4px 12px; border-radius: 99px; margin-top: 8px;
+    }
+
+    .ca-form { display: flex; flex-direction: column; gap: 12px; }
+    .ca-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field-group { display: flex; flex-direction: column; gap: 4px; }
+    .field-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; }
+    .field-input {
+      background: #161616; border: 1px solid #1e1e1e; border-radius: 7px;
+      padding: 8px 11px; font-size: 13px; color: #f1f5f9;
+      outline: none; transition: border-color 0.15s; font-family: inherit;
+    }
+    .field-input:focus { border-color: #2563eb; }
+    .field-input::placeholder { color: #334155; }
+    .field-select {
+      background: #161616; border: 1px solid #1e1e1e; border-radius: 7px;
+      padding: 8px 11px; font-size: 12px; color: #94a3b8;
+      outline: none; cursor: pointer; font-family: inherit;
+    }
+    .field-select:focus { border-color: #2563eb; }
+    .qa-section-title {
+      font-size: 10px; font-weight: 600; color: #334155;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      padding-top: 4px; border-top: 1px solid #1a1a1a;
+    }
+    .qa-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .ca-btn {
+      padding: 10px 20px; background: #2563eb; border: none; border-radius: 9px;
+      color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .ca-btn:hover { background: #1d4ed8; }
+    .ca-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ca-error { font-size: 12px; color: #ef4444; display: none; }
+
+    /* ══════════════════════════════════════════════════════
+       LOGIN VIEW
+    ══════════════════════════════════════════════════════ */
+    #loginView { justify-content: center; }
+    .login-card {
+      width: 100%; max-width: 380px;
+      background: #111; border: 1px solid #1e1e1e;
+      border-radius: 20px; padding: 28px;
+      animation: fadeUp 0.4s ease both;
+    }
+    .login-header { text-align: center; margin-bottom: 22px; }
+    .login-icon {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, #334155, #1e293b);
+      border: 2px solid #1e293b;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
+      font-size: 22px;
+    }
+    .login-title { font-size: 20px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+    .login-sub { font-size: 12.5px; color: #475569; }
+    .login-form { display: flex; flex-direction: column; gap: 12px; }
+    .login-btn {
+      padding: 11px 20px; background: linear-gradient(135deg, #2563eb, #4f46e5);
+      border: none; border-radius: 9px;
+      color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.15s; display: flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    .login-btn:hover { opacity: 0.9; }
+    .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .login-error { font-size: 12px; color: #ef4444; display: none; }
+    .recovery-link {
+      text-align: center; font-size: 12px; color: #334155;
+      cursor: pointer; padding: 4px; transition: color 0.15s;
+    }
+    .recovery-link:hover { color: #64748b; }
+
+    /* Recovery steps (inside login card) */
+    .recovery-step { display: none; }
+    .recovery-step.active { display: flex; flex-direction: column; gap: 12px; }
+    .recovery-back {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #475569; cursor: pointer; margin-bottom: 4px;
+    }
+    .recovery-back:hover { color: #94a3b8; }
+
+    /* ══════════════════════════════════════════════════════
+       APPS VIEW
+    ══════════════════════════════════════════════════════ */
+    #appsView {
+      justify-content: flex-start;
+      padding: 0 40px 16px;
+      gap: 0;
+    }
+
+    /* User bar */
+    .user-bar {
+      width: 100%; max-width: 720px; align-self: center;
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 0 14px;
+      border-bottom: 1px solid #111;
+      margin-bottom: 18px;
+      animation: fadeUp 0.3s ease both;
+    }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .user-avatar.admin-av { background: linear-gradient(135deg, #d97706, #dc2626); }
+    .user-info { flex: 1; }
+    .user-name-text { font-size: 13px; font-weight: 600; color: #f1f5f9; }
+    .user-role-badge {
+      display: inline-flex; align-items: center;
+      font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 99px;
+      margin-left: 6px; text-transform: uppercase;
+    }
+    .role-admin { background: rgba(245,158,11,0.15); color: #fbbf24; }
+    .role-user  { background: rgba(99,102,241,0.12); color: #a5b4fc; }
+    .logout-btn {
+      background: transparent; border: 1px solid #1e1e1e;
+      border-radius: 7px; color: #475569;
+      font-size: 11px; padding: 5px 12px; cursor: pointer;
+      transition: all 0.15s; font-family: inherit;
+    }
+    .logout-btn:hover { border-color: #334155; color: #94a3b8; }
+
+    /* Section labels */
+    .section-block { width: 100%; max-width: 720px; align-self: center; animation: fadeUp 0.4s ease both; }
+    .section-block + .section-block { margin-top: 18px; }
+    .section-label {
+      font-size: 10px; font-weight: 700; color: #334155;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after {
+      content: ''; flex: 1; height: 1px; background: #111;
+    }
+
+    .apps { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .app-card {
+      background: #111; border: 1px solid #1e1e1e; border-radius: 14px;
+      padding: 18px; cursor: pointer; transition: all 0.2s ease;
+      display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden;
+    }
+    .app-card::before { content: ''; position: absolute; inset: 0; border-radius: 14px; opacity: 0; transition: opacity 0.2s; }
+    .app-card:hover { border-color: transparent; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.4); }
+    .app-card:active { transform: translateY(0); }
+
+    .card-ff::before  { background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(99,102,241,0.08)); }
+    .card-ff:hover::before  { opacity: 1; }
+    .card-ff:hover  { border-color: rgba(59,130,246,0.3);  box-shadow: 0 8px 28px rgba(59,130,246,0.12); }
+    .card-ls::before  { background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,182,212,0.06)); }
+    .card-ls:hover::before  { opacity: 1; }
+    .card-ls:hover  { border-color: rgba(16,185,129,0.3);  box-shadow: 0 8px 28px rgba(16,185,129,0.1); }
+    .card-remote::before { background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); }
+    .card-remote:hover::before { opacity: 1; }
+    .card-remote:hover { border-color: rgba(99,102,241,0.3); box-shadow: 0 8px 28px rgba(99,102,241,0.1); }
+    .card-admin::before { background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(239,68,68,0.06)); }
+    .card-admin:hover::before { opacity: 1; }
+    .card-admin:hover { border-color: rgba(245,158,11,0.3); box-shadow: 0 8px 28px rgba(245,158,11,0.1); }
+
+    .card-header { display: flex; align-items: center; gap: 10px; }
+    .card-icon { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .icon-ff     { background: linear-gradient(135deg, #1d4ed8, #4f46e5); }
+    .icon-ls     { background: linear-gradient(135deg, #059669, #0891b2); }
+    .icon-remote { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+    .icon-admin  { background: linear-gradient(135deg, #d97706, #dc2626); }
+    .card-info { flex: 1; min-width: 0; }
+    .card-name { font-size: 13px; font-weight: 700; color: #f1f5f9; margin-bottom: 2px; }
+    .card-version { font-size: 11px; color: #475569; font-weight: 500; }
+    .card-desc { font-size: 11.5px; color: #64748b; line-height: 1.5; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tag { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 99px; }
+    .tag-ff     { background: rgba(59,130,246,0.12); color: #60a5fa; }
+    .tag-ls     { background: rgba(16,185,129,0.12); color: #34d399; }
+    .tag-remote { background: rgba(99,102,241,0.12); color: #a5b4fc; }
+    .tag-admin  { background: rgba(245,158,11,0.12); color: #fbbf24; }
+    .card-btn {
+      width: 100%; padding: 8px; border: none; border-radius: 7px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .card-btn:hover { opacity: 0.9; }
+    .card-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-ff     { background: linear-gradient(135deg, #2563eb, #4f46e5); color: #fff; }
+    .btn-ls     { background: linear-gradient(135deg, #059669, #0891b2); color: #fff; }
+    .btn-remote { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+    .btn-admin  { background: linear-gradient(135deg, #d97706, #dc2626); color: #fff; }
+
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #1e293b; display: inline-block; margin-right: 5px; transition: background 0.3s; }
+    .status-dot.ready   { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+    .status-dot.loading { background: #f59e0b; animation: blink 1s infinite; }
+    .status-dot.error   { background: #ef4444; }
+
+    /* Footer apps */
+    .apps-footer {
+      width: 100%; max-width: 720px; align-self: center;
+      font-size: 12px; color: #1e293b; padding-top: 12px; margin-top: auto;
+      display: flex; align-items: center; justify-content: space-between;
+      animation: fadeUp 0.5s ease 0.2s both;
+    }
+    .footer-left { display: flex; align-items: center; gap: 4px; }
+    .footer-right { display: flex; align-items: center; gap: 4px; }
+    .footer-btn {
+      background: transparent; border: none; color: #1e293b; cursor: pointer;
+      font-size: 12px; padding: 3px 7px; border-radius: 6px; transition: color 0.2s;
+      display: inline-flex; align-items: center; gap: 4px; font-family: inherit;
+    }
+    .footer-btn:hover { color: #475569; }
+    .footer-ip { font-size: 11px; color: #1e293b; font-family: 'Courier New', monospace; }
+
+    /* ── Shared btn ── */
+    .btn-primary {
+      width: 100%; padding: 10px 20px; background: linear-gradient(135deg, #0891b2, #059669);
+      border: none; border-radius: 9px;
+      color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.15s; display: flex; align-items: center; justify-content: center; gap: 7px;
+      font-family: inherit;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Modal base ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      background: #111; border: 1px solid #1e1e1e; border-radius: 20px;
+      padding: 28px; width: 100%; max-width: 420px;
+      max-height: 80vh; overflow-y: auto;
+      animation: fadeUp 0.25s ease both;
+    }
+    .modal-title { font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+    .modal-sub { font-size: 12px; color: #475569; margin-bottom: 20px; }
+    .modal-close {
+      width: 100%; padding: 9px; background: #161616; border: 1px solid #1e1e1e;
+      border-radius: 8px; color: #94a3b8; font-size: 13px; cursor: pointer; margin-top: 14px;
+      font-family: inherit;
+    }
+    .modal-close:hover { background: #1a1a1a; color: #e2e8f0; }
+
+    /* ── QR modal ── */
+    .qr-img-box { background: #fff; border-radius: 12px; padding: 10px; display: flex; justify-content: center; }
+    .qr-img-box img { width: 160px; height: 160px; display: block; border-radius: 6px; }
+    .qr-url-box { font-family: 'Courier New', monospace; font-size: 11px; color: #334155; background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 6px; padding: 7px 10px; word-break: break-all; margin-top: 12px; text-align: center; }
+    .qr-hint { font-size: 11px; color: #334155; text-align: center; margin-top: 10px; line-height: 1.6; }
+
+    /* ── Admin modal ── */
+    .admin-reset-btn {
+      width: 100%; padding: 9px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 8px; color: #ef4444; font-size: 13px; cursor: pointer; margin-top: 10px;
+      font-family: inherit;
+    }
+    .admin-reset-btn:hover { background: rgba(239,68,68,0.18); }
+
+    /* ── Cambio password inline ── */
+    .pwd-change-form {
+      display: none; margin-top: 8px; padding: 10px;
+      background: #0a0f1a; border: 1px solid #1e293b; border-radius: 8px;
+      animation: fadeUp 0.2s ease;
+    }
+    .pwd-change-form.open { display: block; }
+    .pwd-change-row { display: flex; gap: 6px; align-items: center; }
+    .pwd-change-input {
+      flex: 1; padding: 6px 9px; background: #0d1520; border: 1px solid #1e293b;
+      border-radius: 6px; color: #e2e8f0; font-size: 11px; font-family: inherit; outline: none;
+    }
+    .pwd-change-input:focus { border-color: #4f46e5; }
+    .pwd-change-btn {
+      padding: 6px 10px; background: #4f46e5; border: none; border-radius: 6px;
+      color: #fff; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;
+      font-family: inherit;
+    }
+    .pwd-change-btn:hover { background: #6366f1; }
+    .pwd-change-err { font-size: 10px; color: #ef4444; margin-top: 5px; display: none; }
+    .pwd-change-ok  { font-size: 10px; color: #4ade80; margin-top: 5px; display: none; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes blink  { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<div class="titlebar">
+  <div class="titlebar-logo">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"/>
+      <path d="m7 16.5-4.74-2.85"/><path d="m7 16.5 5-3"/><path d="M7 16.5v5.17"/>
+      <path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"/>
+      <path d="m17 16.5-5-3"/><path d="m17 16.5 4.74-2.85"/><path d="M17 16.5v5.17"/>
+      <path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"/>
+      <path d="M12 8 7.26 5.15"/><path d="m12 8 4.74-2.85"/><path d="M12 13.5V8"/>
+    </svg>
+  </div>
+  <span class="titlebar-title">LocalForge Studio</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     NETWORK VIEW — selezione interfaccia di rete
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="networkView" class="view">
+  <div class="net-card">
+    <div class="net-header">
+      <div class="net-icon">
+        <svg width="24" height="24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M1.5 8.5a13 13 0 0121 0M5 12a10 10 0 0114 0M8.5 15.5a6 6 0 017 0M12 19h.01"/>
+        </svg>
+      </div>
+      <div class="net-title">Configura la rete locale</div>
+      <div class="net-sub">Seleziona l'interfaccia di rete che useranno LocalSync Bridge e i tuoi dispositivi per connettersi.</div>
+    </div>
+
+    <div class="net-info-box">
+      <strong>Perché è necessario?</strong><br>
+      LocalSync Bridge usa il tuo IP locale per generare il QR code di accesso da smartphone. Scegli l'interfaccia attiva (di solito Wi-Fi).
+    </div>
+
+    <div id="ifaceList" class="iface-list">
+      <div class="net-loading">Rilevamento interfacce di rete...</div>
+    </div>
+
+    <button class="btn-primary" id="netConfirmBtn" onclick="confirmNetwork()" disabled>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      Conferma e continua
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CREATE ACCOUNT VIEW — primo avvio, nessun utente
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="createAccountView" class="view">
+  <div class="ca-card">
+    <div class="ca-header">
+      <div class="ca-icon">
+        <svg width="26" height="26" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+      </div>
+      <div class="ca-title">Crea il tuo account</div>
+      <div class="ca-sub">Stai configurando l'account principale dell'app.</div>
+      <div>
+        <span class="admin-badge">
+          <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          Sarà registrato come Amministratore
+        </span>
+      </div>
+    </div>
+
+    <div class="ca-form">
+      <div class="ca-grid">
+        <div class="field-group" style="grid-column:1/-1">
+          <div class="field-label">Username</div>
+          <input type="text" id="acc-username" class="field-input" placeholder="es. pedro" autocomplete="off">
+        </div>
+        <div class="field-group">
+          <div class="field-label">Password</div>
+          <input type="password" id="acc-pwd1" class="field-input" placeholder="Min. 6 caratteri">
+        </div>
+        <div class="field-group">
+          <div class="field-label">Conferma Password</div>
+          <input type="password" id="acc-pwd2" class="field-input" placeholder="Ripeti...">
+        </div>
+      </div>
+
+      <div class="qa-section-title">Domande di Sicurezza (recupero password)</div>
+      <div id="qaContainer" style="display:flex;flex-direction:column;gap:6px;"></div>
+
+      <p id="accError" class="ca-error"></p>
+      <button class="ca-btn" id="createAccountBtn" onclick="createAccount()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        Crea Account Amministratore
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     LOGIN VIEW — accesso per utenti esistenti
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="loginView" class="view">
+  <div class="login-card">
+
+    <!-- Step login -->
+    <div id="loginStep" class="recovery-step active">
+      <div class="login-header">
+        <div class="login-icon">🔐</div>
+        <div class="login-title">Bentornato</div>
+        <div class="login-sub">Inserisci le tue credenziali per accedere</div>
+      </div>
+      <div class="login-form">
+        <div class="field-group">
+          <div class="field-label">Username</div>
+          <input type="text" id="login-username" class="field-input" placeholder="Il tuo username" autocomplete="off">
+        </div>
+        <div class="field-group">
+          <div class="field-label">Password</div>
+          <input type="password" id="login-password" class="field-input" placeholder="Password">
+        </div>
+        <p id="loginError" class="login-error"></p>
+        <button class="login-btn" id="loginBtn" onclick="login()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+          Accedi
+        </button>
+        <div class="recovery-link" onclick="showRecovery()">Password dimenticata?</div>
+      </div>
+    </div>
+
+    <!-- Step recovery 1: inserisci username -->
+    <div id="recoveryStep1" class="recovery-step">
+      <div class="recovery-back" onclick="showLoginStep()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Torna al login
+      </div>
+      <div class="login-header" style="margin-bottom:16px">
+        <div class="login-title" style="font-size:17px">Recupero password</div>
+        <div class="login-sub">Inserisci il tuo username per continuare</div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Username</div>
+        <input type="text" id="rec-username" class="field-input" placeholder="Il tuo username" autocomplete="off">
+      </div>
+      <p id="recError1" class="login-error"></p>
+      <button class="login-btn" onclick="loadRecoveryQuestions()">
+        Continua →
+      </button>
+    </div>
+
+    <!-- Step recovery 2: rispondi alle domande -->
+    <div id="recoveryStep2" class="recovery-step">
+      <div class="recovery-back" onclick="showRecovery()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Indietro
+      </div>
+      <div class="login-header" style="margin-bottom:16px">
+        <div class="login-title" style="font-size:17px">Domande di sicurezza</div>
+        <div class="login-sub">Rispondi correttamente ad almeno 2 domande</div>
+      </div>
+      <div id="recQAContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <p id="recError2" class="login-error"></p>
+      <button class="login-btn" onclick="verifyRecovery()">Verifica →</button>
+    </div>
+
+    <!-- Step recovery 3: nuova password -->
+    <div id="recoveryStep3" class="recovery-step">
+      <div class="login-header" style="margin-bottom:16px">
+        <div class="login-title" style="font-size:17px">Nuova password</div>
+        <div class="login-sub">Scegli una nuova password sicura</div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Nuova Password</div>
+        <input type="password" id="new-pwd1" class="field-input" placeholder="Min. 6 caratteri">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Conferma Password</div>
+        <input type="password" id="new-pwd2" class="field-input" placeholder="Ripeti...">
+      </div>
+      <p id="recError3" class="login-error"></p>
+      <button class="login-btn" onclick="resetPassword()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        Salva nuova password
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     APPS VIEW — launcher principale
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="appsView" class="view">
+
+  <!-- User bar -->
+  <div class="user-bar">
+    <div class="user-avatar" id="userAvatar">?</div>
+    <div class="user-info">
+      <span class="user-name-text" id="userBarName">—</span>
+      <span class="user-role-badge role-admin" id="userBarBadge">Admin</span>
+    </div>
+    <button class="logout-btn" onclick="logout()">Esci</button>
+  </div>
+
+  <!-- LE MIE APP -->
+  <div class="section-block">
+    <div class="section-label">Le mie app</div>
+    <div class="apps">
+
+      <!-- FileForge Studio -->
+      <div class="app-card card-ff" onclick="launch('fileforge')">
+        <div class="card-header">
+          <div class="card-icon icon-ff">
+            <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"/>
+              <path d="m7 16.5-4.74-2.85"/><path d="m7 16.5 5-3"/><path d="M7 16.5v5.17"/>
+              <path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"/>
+              <path d="m17 16.5-5-3"/><path d="m17 16.5 4.74-2.85"/><path d="M17 16.5v5.17"/>
+              <path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"/>
+              <path d="M12 8 7.26 5.15"/><path d="m12 8 4.74-2.85"/><path d="M12 13.5V8"/>
+            </svg>
+          </div>
+          <div class="card-info">
+            <div class="card-name">FileForge Studio</div>
+            <div class="card-version"><span class="status-dot" id="dot-ff"></span><span id="status-ff">Connessione...</span></div>
+          </div>
+        </div>
+        <div class="card-desc">20 strumenti per PDF, immagini, conversioni, firme digitali e utilità. Tutto offline.</div>
+        <div class="card-tags">
+          <span class="tag tag-ff">PDF</span><span class="tag tag-ff">Immagini</span><span class="tag tag-ff">Utilità</span>
+        </div>
+        <button class="card-btn btn-ff" id="btn-ff" disabled>
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Apri FileForge Studio
+        </button>
+      </div>
+
+      <!-- LocalSync Bridge -->
+      <div class="app-card card-ls" onclick="launch('localsync')">
+        <div class="card-header">
+          <div class="card-icon icon-ls">
+            <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/>
+            </svg>
+          </div>
+          <div class="card-info">
+            <div class="card-name">LocalSync Bridge</div>
+            <div class="card-version"><span class="status-dot" id="dot-ls"></span><span id="status-ls">Connessione...</span></div>
+          </div>
+        </div>
+        <div class="card-desc">Trasferisci file e dati tra PC e smartphone in tempo reale sulla rete locale.</div>
+        <div class="card-tags">
+          <span class="tag tag-ls">LAN</span><span class="tag tag-ls">Real-time</span><span class="tag tag-ls">Multi-utente</span>
+        </div>
+        <button class="card-btn btn-ls" id="btn-ls" disabled>
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Apri LocalSync Bridge
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- AMMINISTRAZIONE (solo admin) -->
+  <div class="section-block" id="adminSection" style="display:none">
+    <div class="section-label">Amministrazione</div>
+    <div class="apps">
+
+      <!-- Collegamento Remoto -->
+      <div class="app-card card-remote" onclick="openQrModal()">
+        <div class="card-header">
+          <div class="card-icon icon-remote">
+            <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+              <path d="M14 14h3v3M20 14v.01M14 20h.01M20 17v3h-3"/>
+            </svg>
+          </div>
+          <div class="card-info">
+            <div class="card-name">Collegamento Remoto</div>
+            <div class="card-version" style="color:#6366f1">QR Code di connessione</div>
+          </div>
+        </div>
+        <div class="card-desc">Genera il QR code per collegare smartphone e tablet alla rete locale.</div>
+        <div class="card-tags">
+          <span class="tag tag-remote">QR</span><span class="tag tag-remote">iOS</span><span class="tag tag-remote">Android</span>
+        </div>
+        <button class="card-btn btn-remote">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+          Mostra QR Code
+        </button>
+      </div>
+
+      <!-- Pannello Utenti -->
+      <div class="app-card card-admin" onclick="openAdminPanel()">
+        <div class="card-header">
+          <div class="card-icon icon-admin">
+            <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+          </div>
+          <div class="card-info">
+            <div class="card-name">Pannello Utenti</div>
+            <div class="card-version" style="color:#f59e0b">Gestione account</div>
+          </div>
+        </div>
+        <div class="card-desc">Visualizza, gestisci e modifica i ruoli degli utenti registrati.</div>
+        <div class="card-tags">
+          <span class="tag tag-admin">Admin</span><span class="tag tag-admin">Utenti</span>
+        </div>
+        <button class="card-btn btn-admin">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          Gestisci Utenti
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="apps-footer">
+    <div class="footer-left">
+      <span>v<span id="app-version">—</span></span>
+      <span style="color:#111;margin:0 4px">·</span>
+      <span class="footer-ip" id="footerIp">localhost:3001</span>
+    </div>
+    <div class="footer-right">
+      <button class="footer-btn" onclick="window.electronAPI.showTutorial()">
+        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        Tutorial
+      </button>
+      <button class="footer-btn" id="changeNetBtn" onclick="changeNetwork()" style="display:none">
+        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+        Cambia rete
+      </button>
+    </div>
+  </div>
+
+</div><!-- /appsView -->
+
+<!-- ═══════════════════════════════════════════════════════════════
+     QR MODAL
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="qrModal" class="modal-overlay" onclick="closeQrModal()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-title">Collegamento Remoto</div>
+    <div class="modal-sub">Scansiona il QR con iPhone o Android</div>
+    <div class="qr-img-box"><img id="qrImage" src="" alt="QR Code"></div>
+    <div class="qr-url-box" id="qrUrl">Caricamento...</div>
+    <div class="qr-hint">Al primo accesso Safari chiederà di fidarsi del certificato.<br>Tocca <em>Continua</em> per procedere.</div>
+    <button class="modal-close" onclick="closeQrModal()">Chiudi</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ADMIN MODAL
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="adminModal" class="modal-overlay" onclick="closeAdminModal()">
+  <div class="modal-card" onclick="event.stopPropagation()" style="max-width:480px">
+    <div class="modal-title">Pannello Utenti</div>
+    <div class="modal-sub">Gestisci gli account di LocalSync Bridge</div>
+    <div id="userList"><p style="font-size:12px;color:#475569;text-align:center;padding:12px 0">Caricamento...</p></div>
+    <button class="admin-reset-btn" onclick="resetApp()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-right:5px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      Reset App — Elimina tutti i dati
+    </button>
+    <button class="modal-close" onclick="closeAdminModal()">Chiudi</button>
+  </div>
+</div>
+
+<script>
+  const BASE_URL = 'https://localhost:3001';
+  const FF_URL   = BASE_URL + '/fileforge';
+  const LS_URL   = BASE_URL + '/localsync';
+
+  const SECURITY_QUESTIONS = [
+    { id: 'q1', text: "Qual è il cognome da nubile di tua madre?" },
+    { id: 'q2', text: "Come si chiamava il tuo primo animale domestico?" },
+    { id: 'q3', text: "In che città sei nato/a?" },
+    { id: 'q4', text: "Qual è il tuo film preferito?" },
+    { id: 'q5', text: "Qual era il nome della tua prima scuola elementare?" },
+    { id: 'q6', text: "Qual è il nome della via in cui sei cresciuto/a?" },
+  ];
+
+  // ── Stato globale ─────────────────────────────────────────────────────────
+  let currentUser = null;    // { username, role }
+  let pendingAfterNetwork = 'login';  // 'create' | 'login'
+  let selectedIface = null;  // indirizzo IP selezionato nella network view
+  let recoveryResetToken = null;
+  let recoveryUsername   = null;
+
+  // ── Views ─────────────────────────────────────────────────────────────────
+  const VIEWS = ['networkView', 'createAccountView', 'loginView', 'appsView'];
+
+  function showView(id) {
+    VIEWS.forEach(vid => {
+      const el = document.getElementById(vid);
+      if (!el) return;
+      el.style.display = (vid === id) ? 'flex' : 'none';
+    });
+  }
+
+  function launch(app) { window.electronAPI.launchApp(app); }
+
+  async function sha256(input) {
+    const enc = new TextEncoder();
+    const buf = await crypto.subtle.digest('SHA-256', enc.encode(input));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ── Network View ──────────────────────────────────────────────────────────
+  async function setupNetworkView() {
+    const listEl = document.getElementById('ifaceList');
+    listEl.innerHTML = '<div class="net-loading">Rilevamento interfacce di rete...</div>';
+    document.getElementById('netConfirmBtn').disabled = true;
+
+    try {
+      const ifaces = await window.electronAPI.getNetworkInterfaces();
+      if (!ifaces || ifaces.length === 0) {
+        listEl.innerHTML = '<div class="net-loading" style="color:#ef4444">Nessuna interfaccia di rete trovata.<br>Verifica che il Wi-Fi o l\'Ethernet sia attivo.</div>';
+        return;
+      }
+
+      // Determina l'IP preferito (stessa logica del server: 192.168 > 172 > 10)
+      const preferred =
+        ifaces.find(i => i.address.startsWith('192.168.'))?.address ||
+        ifaces.find(i => i.address.startsWith('172.'))?.address ||
+        ifaces.find(i => i.address.startsWith('10.'))?.address ||
+        ifaces[0].address;
+
+      listEl.innerHTML = '';
+      ifaces.forEach(iface => {
+        const isPreferred = iface.address === preferred;
+        const item = document.createElement('div');
+        item.className = 'iface-item' + (isPreferred ? ' selected' : '');
+        item.innerHTML = `
+          <div class="iface-radio"></div>
+          <div class="iface-body">
+            <div class="iface-name">${escHtml(iface.name)}</div>
+            <div class="iface-addr">${escHtml(iface.address)}</div>
+          </div>
+          ${isPreferred ? '<span class="iface-badge">Consigliato</span>' : ''}
+        `;
+        item.onclick = () => selectIface(iface.address);
+        listEl.appendChild(item);
+      });
+
+      selectIface(preferred);
+    } catch (e) {
+      listEl.innerHTML = '<div class="net-loading" style="color:#ef4444">Errore rilevamento. Riprova.</div>';
+    }
+  }
+
+  function selectIface(address) {
+    selectedIface = address;
+    document.querySelectorAll('.iface-item').forEach(el => {
+      const addrEl = el.querySelector('.iface-addr');
+      el.classList.toggle('selected', addrEl && addrEl.textContent === address);
+    });
+    document.getElementById('netConfirmBtn').disabled = false;
+  }
+
+  async function confirmNetwork() {
+    if (!selectedIface) return;
+    await window.electronAPI.setPreferredIp(selectedIface);
+    document.getElementById('footerIp').textContent = selectedIface + ':3001';
+    if (pendingAfterNetwork === 'create') {
+      showView('createAccountView');
+      buildQAForm();
+    } else {
+      showView('loginView');
+      showLoginStep();
+    }
+  }
+
+  async function changeNetwork() {
+    pendingAfterNetwork = 'apps';
+    await setupNetworkView();
+    showView('networkView');
+  }
+
+  // ── Server status dots ────────────────────────────────────────────────────
+  async function checkServer(url, dotId, statusId, btnId) {
+    const dot    = document.getElementById(dotId);
+    const status = document.getElementById(statusId);
+    const btn    = document.getElementById(btnId);
+    if (!dot) return;
+    dot.className = 'status-dot loading';
+    status.textContent = 'Avvio...';
+    btn.disabled = true;
+    for (let i = 0; i < 60; i++) {
+      try {
+        await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(1500), mode: 'no-cors' });
+        dot.className = 'status-dot ready';
+        status.textContent = 'Pronto';
+        btn.disabled = false;
+        return true;
+      } catch {}
+      await new Promise(r => setTimeout(r, 1000));
+    }
+    dot.className = 'status-dot error';
+    status.textContent = 'Non disponibile';
+    btn.disabled = true;
+    return false;
+  }
+
+  // ── QA Form ───────────────────────────────────────────────────────────────
+  function buildQAForm() {
+    const container = document.getElementById('qaContainer');
+    container.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const row = document.createElement('div');
+      row.className = 'qa-row';
+      row.innerHTML = `
+        <div class="field-group">
+          <div class="field-label">Domanda ${i + 1}</div>
+          <select id="acc-q-${i}" class="field-select">
+            ${SECURITY_QUESTIONS.map(q => `<option value="${q.id}">${q.text}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Risposta</div>
+          <input type="text" id="acc-a-${i}" class="field-input" placeholder="La tua risposta..." autocomplete="off">
+        </div>`;
+      container.appendChild(row);
+      document.getElementById(`acc-q-${i}`).selectedIndex = i;
+    }
+  }
+
+  // ── Crea Account ──────────────────────────────────────────────────────────
+  async function createAccount() {
+    const username = document.getElementById('acc-username').value.trim();
+    const pwd1     = document.getElementById('acc-pwd1').value;
+    const pwd2     = document.getElementById('acc-pwd2').value;
+    const errEl    = document.getElementById('accError');
+    const btn      = document.getElementById('createAccountBtn');
+
+    errEl.style.display = 'none';
+    if (!username || username.length < 2) { showErr(errEl, 'Username troppo corto (min. 2 caratteri).'); return; }
+    if (pwd1.length < 6)  { showErr(errEl, 'Password min. 6 caratteri.'); return; }
+    if (pwd1 !== pwd2)    { showErr(errEl, 'Le password non coincidono.'); return; }
+
+    const qa = [];
+    for (let i = 0; i < 3; i++) {
+      const ans = document.getElementById(`acc-a-${i}`)?.value.trim().toLowerCase() || '';
+      const qid = document.getElementById(`acc-q-${i}`)?.value;
+      if (!ans) { showErr(errEl, `Inserisci la risposta alla domanda ${i + 1}.`); return; }
+      qa.push({ id: qid, ansHash: await sha256(ans) });
+    }
+
+    btn.disabled = true; btn.textContent = 'Creazione in corso...';
+    try {
+      const pwdHash = await sha256(pwd1);
+      const res = await fetch(BASE_URL + '/localsync/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, pwdHash, qa })
+      }).then(r => r.json());
+
+      if (res.success) {
+        if (res.token) localStorage.setItem('ls_admin_token', res.token);
+        currentUser = { username, role: 'admin' };
+        showAppsView();
+      } else {
+        showErr(errEl, res.error || 'Errore durante la creazione.');
+        btn.disabled = false;
+        btn.textContent = 'Crea Account Amministratore';
+      }
+    } catch {
+      showErr(errEl, 'Errore di rete. Riprova.');
+      btn.disabled = false;
+      btn.textContent = 'Crea Account Amministratore';
+    }
+  }
+
+  // ── Login ─────────────────────────────────────────────────────────────────
+  function showLoginStep() {
+    document.querySelectorAll('.recovery-step').forEach(el => el.classList.remove('active'));
+    document.getElementById('loginStep').classList.add('active');
+    document.getElementById('loginError').style.display = 'none';
+  }
+
+  async function login() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl    = document.getElementById('loginError');
+    const btn      = document.getElementById('loginBtn');
+
+    errEl.style.display = 'none';
+    if (!username) { showErr(errEl, 'Inserisci il tuo username.'); return; }
+    if (!password) { showErr(errEl, 'Inserisci la password.'); return; }
+
+    btn.disabled = true; btn.textContent = 'Accesso in corso...';
+    try {
+      const pwdHash = await sha256(password);
+      const res = await fetch(BASE_URL + '/localsync/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, pwdHash })
+      }).then(r => r.json());
+
+      if (res.success) {
+        localStorage.setItem('ls_admin_token', res.token);
+        currentUser = { username: res.username, role: res.role };
+        showAppsView();
+      } else {
+        showErr(errEl, res.error || 'Credenziali non valide.');
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg> Accedi`;
+      }
+    } catch {
+      showErr(errEl, 'Errore di rete. Riprova.');
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg> Accedi`;
+    }
+  }
+
+  async function logout() {
+    const token = localStorage.getItem('ls_admin_token') || '';
+    if (token) {
+      try {
+        await fetch(BASE_URL + '/localsync/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+      } catch {}
+    }
+    localStorage.removeItem('ls_admin_token');
+    currentUser = null;
+    document.getElementById('login-username').value = '';
+    document.getElementById('login-password').value = '';
+    showLoginStep();
+    showView('loginView');
+  }
+
+  // ── Password Recovery ─────────────────────────────────────────────────────
+  function showRecovery() {
+    document.querySelectorAll('.recovery-step').forEach(el => el.classList.remove('active'));
+    document.getElementById('recoveryStep1').classList.add('active');
+    document.getElementById('recError1').style.display = 'none';
+  }
+
+  async function loadRecoveryQuestions() {
+    const username = document.getElementById('rec-username').value.trim();
+    const errEl = document.getElementById('recError1');
+    if (!username) { showErr(errEl, 'Inserisci il tuo username.'); return; }
+
+    try {
+      const res = await fetch(BASE_URL + '/localsync/api/auth/recovery-questions?username=' + encodeURIComponent(username)).then(r => r.json());
+      if (!res.questions || !res.questions.length) { showErr(errEl, 'Utente non trovato o nessuna domanda impostata.'); return; }
+
+      recoveryUsername = username;
+      const container = document.getElementById('recQAContainer');
+      container.innerHTML = '';
+      res.questions.forEach((qid, i) => {
+        const q = SECURITY_QUESTIONS.find(sq => sq.id === qid);
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;flex-direction:column;gap:4px';
+        div.innerHTML = `
+          <div class="field-label">${q ? q.text : qid}</div>
+          <input type="text" id="rec-a-${i}" data-qid="${qid}" class="field-input" placeholder="La tua risposta..." autocomplete="off">
+        `;
+        container.appendChild(div);
+      });
+
+      document.querySelectorAll('.recovery-step').forEach(el => el.classList.remove('active'));
+      document.getElementById('recoveryStep2').classList.add('active');
+      document.getElementById('recError2').style.display = 'none';
+    } catch {
+      showErr(errEl, 'Errore di rete. Riprova.');
+    }
+  }
+
+  async function verifyRecovery() {
+    const inputs = document.querySelectorAll('#recQAContainer input');
+    const errEl  = document.getElementById('recError2');
+    const answers = [];
+    for (const inp of inputs) {
+      const ans = inp.value.trim().toLowerCase();
+      if (!ans) { showErr(errEl, 'Rispondi a tutte le domande.'); return; }
+      answers.push({ id: inp.dataset.qid, ansHash: await sha256(ans) });
+    }
+    try {
+      const res = await fetch(BASE_URL + '/localsync/api/auth/recovery-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: recoveryUsername, answers })
+      }).then(r => r.json());
+
+      if (res.success) {
+        recoveryResetToken = res.resetToken;
+        document.querySelectorAll('.recovery-step').forEach(el => el.classList.remove('active'));
+        document.getElementById('recoveryStep3').classList.add('active');
+        document.getElementById('recError3').style.display = 'none';
+      } else {
+        showErr(errEl, 'Risposte non corrette. Riprova.');
+      }
+    } catch {
+      showErr(errEl, 'Errore di rete. Riprova.');
+    }
+  }
+
+  async function resetPassword() {
+    const pwd1  = document.getElementById('new-pwd1').value;
+    const pwd2  = document.getElementById('new-pwd2').value;
+    const errEl = document.getElementById('recError3');
+    if (pwd1.length < 6) { showErr(errEl, 'Password min. 6 caratteri.'); return; }
+    if (pwd1 !== pwd2)   { showErr(errEl, 'Le password non coincidono.'); return; }
+
+    try {
+      const newPwdHash = await sha256(pwd1);
+      const res = await fetch(BASE_URL + '/localsync/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: recoveryUsername, resetToken: recoveryResetToken, newPwdHash })
+      }).then(r => r.json());
+
+      if (res.success) {
+        showLoginStep();
+        document.getElementById('login-username').value = recoveryUsername;
+        document.getElementById('loginError').textContent = 'Password aggiornata. Accedi con la nuova password.';
+        document.getElementById('loginError').style.display = 'block';
+        document.getElementById('loginError').style.color = '#4ade80';
+      } else {
+        showErr(errEl, res.error || 'Errore reset. Ricomincia.');
+      }
+    } catch {
+      showErr(errEl, 'Errore di rete. Riprova.');
+    }
+  }
+
+  // ── Apps View ─────────────────────────────────────────────────────────────
+  function showAppsView() {
+    if (!currentUser) return;
+
+    const isAdmin = currentUser.role === 'admin';
+    const initial = currentUser.username.charAt(0).toUpperCase();
+
+    // User bar
+    const avatarEl = document.getElementById('userAvatar');
+    avatarEl.textContent = initial;
+    avatarEl.className   = 'user-avatar' + (isAdmin ? ' admin-av' : '');
+    document.getElementById('userBarName').textContent = currentUser.username;
+
+    const badgeEl = document.getElementById('userBarBadge');
+    badgeEl.textContent  = isAdmin ? 'Amministratore' : 'Utente';
+    badgeEl.className    = 'user-role-badge ' + (isAdmin ? 'role-admin' : 'role-user');
+
+    // Admin section
+    document.getElementById('adminSection').style.display = isAdmin ? '' : 'none';
+    document.getElementById('changeNetBtn').style.display = isAdmin ? '' : 'none';
+
+    showView('appsView');
+    checkServer(FF_URL, 'dot-ff', 'status-ff', 'btn-ff');
+    checkServer(LS_URL, 'dot-ls', 'status-ls', 'btn-ls');
+  }
+
+  // ── QR Modal ──────────────────────────────────────────────────────────────
+  async function openQrModal() {
+    document.getElementById('qrModal').classList.add('open');
+    try {
+      const data = await fetch(BASE_URL + '/localsync/api/qrcode').then(r => r.json());
+      if (data.success) {
+        document.getElementById('qrImage').src = data.qr;
+        document.getElementById('qrUrl').textContent = data.url;
+      }
+    } catch {
+      document.getElementById('qrUrl').textContent = 'Errore caricamento QR';
+    }
+  }
+  function closeQrModal() { document.getElementById('qrModal').classList.remove('open'); }
+
+  // ── Admin Modal ───────────────────────────────────────────────────────────
+  async function openAdminPanel() {
+    document.getElementById('adminModal').classList.add('open');
+    await loadUsers();
+  }
+  function closeAdminModal() { document.getElementById('adminModal').classList.remove('open'); }
+
+  function _fmtDate(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts);
+    return d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'2-digit' })
+      + ' ' + d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+  }
+
+  async function loadUsers() {
+    const listEl = document.getElementById('userList');
+    listEl.innerHTML = '<p style="font-size:12px;color:#475569;text-align:center;padding:12px">Caricamento...</p>';
+    try {
+      const token = localStorage.getItem('ls_admin_token') || '';
+      const data  = await fetch(BASE_URL + '/localsync/api/admin/users', {
+        headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+      }).then(r => r.json());
+
+      if (!data.users) {
+        listEl.innerHTML = '<p style="font-size:12px;color:#ef4444;text-align:center;padding:10px">Errore caricamento utenti</p>';
+        return;
+      }
+      if (data.users.length === 0) {
+        listEl.innerHTML = '<p style="font-size:12px;color:#475569;text-align:center;padding:10px">Nessun utente registrato</p>';
+        return;
+      }
+      listEl.innerHTML = '';
+      for (const u of data.users) {
+        const isAdmin = u.role === 'admin';
+        const avatarGrad = isAdmin ? 'linear-gradient(135deg,#d97706,#dc2626)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)';
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:12px 14px;margin-bottom:8px;';
+        card.innerHTML = `
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="width:34px;height:34px;border-radius:50%;background:${avatarGrad};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:white">
+              ${u.username.charAt(0).toUpperCase()}
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(u.username)}</div>
+              <div style="font-size:10px;color:#475569;margin-top:1px">${u.uploadCount} file · ${u.sessionCount} sessioni attive</div>
+            </div>
+            <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;text-transform:uppercase;background:${isAdmin ? 'rgba(245,158,11,0.15)' : 'rgba(99,102,241,0.12)'};color:${isAdmin ? '#fbbf24' : '#a5b4fc'}">
+              ${isAdmin ? 'admin' : 'utente'}
+            </span>
+          </div>
+          <div style="font-size:10px;color:#334155;margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px">
+            <div><span style="color:#475569">Creato:</span> ${_fmtDate(u.createdAt)}</div>
+            <div><span style="color:#475569">Ultimo login:</span> ${_fmtDate(u.lastLogin)}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${!isAdmin ? `
+              <button onclick="changeUserRole('${escHtml(u.username)}','admin')"
+                style="flex:1;min-width:0;font-size:10px;padding:5px 8px;border-radius:6px;border:1px solid rgba(245,158,11,0.25);background:rgba(245,158,11,0.08);color:#fbbf24;cursor:pointer;font-weight:600;font-family:inherit">
+                ▲ Promuovi Admin
+              </button>` : `
+              <button onclick="changeUserRole('${escHtml(u.username)}','user')"
+                style="flex:1;min-width:0;font-size:10px;padding:5px 8px;border-radius:6px;border:1px solid rgba(99,102,241,0.25);background:rgba(99,102,241,0.08);color:#a5b4fc;cursor:pointer;font-weight:600;font-family:inherit">
+                ▼ Declassa Utente
+              </button>`}
+            <button onclick="forceLogout('${escHtml(u.username)}')"
+              style="flex:1;min-width:0;font-size:10px;padding:5px 8px;border-radius:6px;border:1px solid rgba(6,182,212,0.2);background:rgba(6,182,212,0.07);color:#22d3ee;cursor:pointer;font-weight:600;font-family:inherit">
+              ⏏ Forza Logout
+            </button>
+            <button onclick="togglePwdForm('${escHtml(u.username)}')"
+              style="flex:1;min-width:0;font-size:10px;padding:5px 8px;border-radius:6px;border:1px solid rgba(79,70,229,0.25);background:rgba(79,70,229,0.08);color:#818cf8;cursor:pointer;font-weight:600;font-family:inherit">
+              🔑 Cambia Password
+            </button>
+            ${!isAdmin ? `
+              <button onclick="deleteUser('${escHtml(u.username)}')"
+                style="flex:1;min-width:0;font-size:10px;padding:5px 8px;border-radius:6px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.07);color:#f87171;cursor:pointer;font-weight:600;font-family:inherit">
+                ✕ Elimina
+              </button>` : ''}
+          </div>
+          <div class="pwd-change-form" id="pwd-form-${escHtml(u.username)}">
+            <div class="pwd-change-row">
+              <input type="password" class="pwd-change-input" id="pwd-input-${escHtml(u.username)}" placeholder="Nuova password (min. 6 car.)">
+              <button class="pwd-change-btn" onclick="adminChangePassword('${escHtml(u.username)}')">Salva</button>
+            </div>
+            <div class="pwd-change-err" id="pwd-err-${escHtml(u.username)}"></div>
+            <div class="pwd-change-ok"  id="pwd-ok-${escHtml(u.username)}">✓ Password aggiornata</div>
+          </div>`;
+        listEl.appendChild(card);
+      }
+    } catch {
+      listEl.innerHTML = '<p style="font-size:12px;color:#ef4444;text-align:center;padding:10px">Errore di rete — server non raggiungibile</p>';
+    }
+  }
+
+  async function deleteUser(username) {
+    if (!confirm(`Eliminare l'utente "${username}" e tutti i suoi file?`)) return;
+    const token = localStorage.getItem('ls_admin_token') || '';
+    const res = await fetch(BASE_URL + '/localsync/api/admin/users/' + encodeURIComponent(username), {
+      method: 'DELETE',
+      headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+    }).then(r => r.json());
+    if (res.success) await loadUsers();
+    else alert(res.error || 'Errore eliminazione');
+  }
+
+  async function changeUserRole(username, newRole) {
+    const label = newRole === 'admin' ? 'amministratore' : 'utente normale';
+    if (!confirm(`Cambiare il ruolo di "${username}" in ${label}?`)) return;
+    const token = localStorage.getItem('ls_admin_token') || '';
+    const res = await fetch(BASE_URL + '/localsync/api/admin/users/' + encodeURIComponent(username) + '/role', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
+      body: JSON.stringify({ role: newRole })
+    }).then(r => r.json());
+    if (res.success) await loadUsers();
+    else alert(res.error || 'Errore cambio ruolo');
+  }
+
+  async function forceLogout(username) {
+    if (!confirm(`Disconnettere tutte le sessioni di "${username}"?`)) return;
+    const token = localStorage.getItem('ls_admin_token') || '';
+    const res = await fetch(BASE_URL + '/localsync/api/admin/users/' + encodeURIComponent(username) + '/sessions', {
+      method: 'DELETE',
+      headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+    }).then(r => r.json());
+    if (res.success) { await loadUsers(); alert(`Sessioni di "${username}" terminate.`); }
+    else alert(res.error || 'Errore logout forzato');
+  }
+
+  function togglePwdForm(username) {
+    const form = document.getElementById('pwd-form-' + username);
+    if (!form) return;
+    form.classList.toggle('open');
+    if (form.classList.contains('open')) {
+      const inp = document.getElementById('pwd-input-' + username);
+      if (inp) { inp.value = ''; inp.focus(); }
+      const err = document.getElementById('pwd-err-' + username);
+      const ok  = document.getElementById('pwd-ok-' + username);
+      if (err) err.style.display = 'none';
+      if (ok)  ok.style.display  = 'none';
+    }
+  }
+
+  async function adminChangePassword(username) {
+    const inp   = document.getElementById('pwd-input-' + username);
+    const errEl = document.getElementById('pwd-err-'   + username);
+    const okEl  = document.getElementById('pwd-ok-'    + username);
+    if (!inp) return;
+    errEl.style.display = 'none';
+    okEl.style.display  = 'none';
+    const pwd = inp.value;
+    if (pwd.length < 6) { errEl.textContent = 'Min. 6 caratteri'; errEl.style.display = 'block'; return; }
+    try {
+      const newPwdHash = await sha256(pwd);
+      const token = localStorage.getItem('ls_admin_token') || '';
+      const res = await fetch(BASE_URL + '/localsync/api/admin/users/' + encodeURIComponent(username) + '/password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
+        body: JSON.stringify({ newPwdHash })
+      }).then(r => r.json());
+      if (res.success) {
+        inp.value = '';
+        okEl.style.display = 'block';
+        setTimeout(() => {
+          const form = document.getElementById('pwd-form-' + username);
+          if (form) form.classList.remove('open');
+          okEl.style.display = 'none';
+        }, 2000);
+      } else {
+        errEl.textContent = res.error || 'Errore aggiornamento';
+        errEl.style.display = 'block';
+      }
+    } catch {
+      errEl.textContent = 'Errore di rete';
+      errEl.style.display = 'block';
+    }
+  }
+
+  async function resetApp() {
+    if (!confirm('ATTENZIONE: questa operazione elimina TUTTI gli account e TUTTI i file. Continuare?')) return;
+    if (!confirm('Ultima conferma: eliminare tutto e tornare al primo avvio?')) return;
+    try {
+      const token = localStorage.getItem('ls_admin_token') || '';
+      const res = await fetch(BASE_URL + '/localsync/api/admin/reset-app', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) }
+      }).then(r => r.json());
+      if (res.success) {
+        localStorage.removeItem('ls_admin_token');
+        currentUser = null;
+        closeAdminModal();
+        initLauncher();
+      } else {
+        alert(res.error || 'Errore reset');
+      }
+    } catch {
+      alert('Errore di rete durante il reset. Riprova.');
+    }
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function showErr(el, msg) { el.textContent = msg; el.style.display = 'block'; el.style.color = '#ef4444'; }
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  async function initLauncher() {
+    // Nasconde tutte le view durante l'init
+    VIEWS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+
+    try {
+      const [preferredIp, status] = await Promise.all([
+        window.electronAPI.getPreferredIp(),
+        fetch(BASE_URL + '/localsync/api/auth/status').then(r => r.json())
+      ]);
+
+      // Aggiorna IP nel footer
+      if (preferredIp) {
+        document.getElementById('footerIp').textContent = preferredIp + ':3001';
+      }
+
+      if (!preferredIp) {
+        // Prima volta: mostra configurazione rete
+        pendingAfterNetwork = status.userCount === 0 ? 'create' : 'login';
+        await setupNetworkView();
+        showView('networkView');
+        return;
+      }
+
+      if (status.userCount === 0) {
+        showView('createAccountView');
+        buildQAForm();
+        return;
+      }
+
+      // Controlla token salvato
+      const token = localStorage.getItem('ls_admin_token') || '';
+      if (token) {
+        try {
+          const verify = await fetch(BASE_URL + '/localsync/api/auth/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+          }).then(r => r.json());
+
+          if (verify.valid) {
+            currentUser = { username: verify.username, role: verify.role };
+            showAppsView();
+            return;
+          }
+        } catch {}
+        localStorage.removeItem('ls_admin_token');
+      }
+
+      // Token non valido o assente → login
+      showLoginStep();
+      showView('loginView');
+
+    } catch {
+      // Server non ancora pronto, riprova
+      setTimeout(initLauncher, 2000);
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    try { document.getElementById('app-version').textContent = await window.electronAPI.getVersion(); } catch {}
+
+    // Enter per login
+    document.getElementById('login-password').addEventListener('keydown', e => {
+      if (e.key === 'Enter') login();
+    });
+    document.getElementById('login-username').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('login-password').focus();
+    });
+
+    initLauncher();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 200 18% 94%;
+    --foreground: 210 30% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 30% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 30% 15%;
+    --primary: 210 60% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 88%;
+    --secondary-foreground: 210 60% 30%;
+    --muted: 210 10% 90%;
+    --muted-foreground: 210 20% 40%;
+    --accent: 180 67% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 20% 85%;
+    --input: 210 20% 85%;
+    --ring: 210 60% 40%;
+    --radius: 0.75rem;
+  }
+  .dark {
+    --background: 210 30% 10%;
+    --foreground: 0 0% 98%;
+    --card: 210 30% 12%;
+    --card-foreground: 0 0% 98%;
+    --popover: 210 30% 12%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 210 60% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 30% 18%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 210 30% 18%;
+    --muted-foreground: 210 10% 70%;
+    --accent: 180 67% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 30% 18%;
+    --input: 210 30% 18%;
+    --ring: 210 60% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline;
+  }
+}
+
+.tool-card-gradient {
+  background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%);
+}
+
+.accent-glow {
+  box-shadow: 0 0 15px -3px hsla(var(--accent), 0.3);
+}

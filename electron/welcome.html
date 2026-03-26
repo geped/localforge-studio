@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Benvenuto</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #e2e8f0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .titlebar {
+      height: 32px;
+      -webkit-app-region: drag;
+      background: #0a0a0a;
+      flex-shrink: 0;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 0 36px 24px;
+      overflow: hidden;
+    }
+
+    .header {
+      text-align: center;
+      padding: 4px 0 20px;
+    }
+    .header .suite-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff 60%, #94a3b8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+    .header p { font-size: 13px; color: #475569; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 3px;
+      background: #111;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 7px 4px;
+      border: none;
+      background: transparent;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .tab-btn svg { flex-shrink: 0; }
+    .tab-btn:hover { color: #94a3b8; background: #1a1a1a; }
+    .tab-btn.active { background: #1a1a1a; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+
+    /* Panels */
+    .panels { flex: 1; position: relative; overflow: hidden; }
+    .panel {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      overflow-y: auto;
+    }
+    .panel.active { opacity: 1; pointer-events: all; }
+
+    /* Cards */
+    .card {
+      background: #111;
+      border: 1px solid #1e1e1e;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 10px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title svg { flex-shrink: 0; color: #475569; }
+    .card-body { font-size: 12.5px; color: #64748b; line-height: 1.65; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .badge-blue   { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .badge-green  { background: rgba(34,197,94,0.15);  color: #4ade80; }
+    .badge-cyan   { background: rgba(6,182,212,0.15);  color: #22d3ee; }
+    .badge-orange { background: rgba(251,146,60,0.15); color: #fb923c; }
+
+    .step {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .step:last-child { margin-bottom: 0; }
+    .step-num {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      flex-shrink: 0; color: #fff;
+    }
+    .num-blue   { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+    .num-green  { background: linear-gradient(135deg, #10b981, #06b6d4); }
+    .step-arr {
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-content { font-size: 12.5px; color: #64748b; line-height: 1.6; padding-top: 2px; }
+    .step-content strong { color: #cbd5e1; }
+
+    /* Tool grid */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .tool-item {
+      background: #0d0d0d;
+      border: 1px solid #1a1a1a;
+      border-radius: 7px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .tool-icon {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .tool-icon svg { color: #94a3b8; }
+    .tool-name { font-size: 12px; font-weight: 600; color: #e2e8f0; margin-bottom: 2px; }
+    .tool-desc { font-size: 10.5px; color: #475569; line-height: 1.4; }
+
+    /* App preview */
+    .app-preview {
+      background: #111;
+      border: 1px solid #1e1e1e;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 14px;
+    }
+    .app-preview-icon {
+      width: 44px; height: 44px;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .icon-ff { background: linear-gradient(135deg, #1d4ed8, #4f46e5); }
+    .icon-ls { background: linear-gradient(135deg, #059669, #0891b2); }
+    .app-preview-body { flex: 1; }
+    .app-preview-name { font-size: 14px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+    .app-preview-desc { font-size: 12px; color: #64748b; line-height: 1.55; margin-bottom: 8px; }
+    .app-features { display: flex; flex-wrap: wrap; gap: 5px; }
+    .feat-tag {
+      font-size: 10.5px; font-weight: 500;
+      padding: 2px 7px; border-radius: 99px;
+    }
+    .feat-ff { background: rgba(59,130,246,0.12); color: #60a5fa; }
+    .feat-ls { background: rgba(16,185,129,0.12); color: #34d399; }
+
+    /* Progress dots */
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 0;
+      flex-shrink: 0;
+    }
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #1e293b;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .dot.active { background: #3b82f6; width: 18px; border-radius: 3px; }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 6px;
+      flex-shrink: 0;
+    }
+    .btn-skip {
+      background: transparent; border: none;
+      color: #334155; font-size: 13px;
+      cursor: pointer; padding: 8px;
+    }
+    .btn-skip:hover { color: #475569; }
+    .btn-next {
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      border: none; color: #fff;
+      font-size: 13px; font-weight: 600;
+      padding: 10px 24px; border-radius: 8px;
+      cursor: pointer; transition: opacity 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .btn-next:hover { opacity: 0.9; }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 2px; }
+  </style>
+</head>
+<body>
+  <div class="titlebar"></div>
+  <div class="container">
+
+    <div class="header">
+      <div class="suite-icon">
+        <svg width="24" height="24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"/>
+          <path d="m7 16.5-4.74-2.85"/><path d="m7 16.5 5-3"/><path d="M7 16.5v5.17"/>
+          <path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"/>
+          <path d="m17 16.5-5-3"/><path d="m17 16.5 4.74-2.85"/><path d="M17 16.5v5.17"/>
+          <path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"/>
+          <path d="M12 8 7.26 5.15"/><path d="m12 8 4.74-2.85"/><path d="M12 13.5V8"/>
+        </svg>
+      </div>
+      <h1>Benvenuto in LocalForge Studio</h1>
+      <p>Un giro veloce prima di iniziare — meno di un minuto</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="goTo(0)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Panoramica
+      </button>
+      <button class="tab-btn" onclick="goTo(1)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        PDF
+      </button>
+      <button class="tab-btn" onclick="goTo(2)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Media
+      </button>
+      <button class="tab-btn" onclick="goTo(3)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
+        LocalSync
+      </button>
+      <button class="tab-btn" onclick="goTo(4)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Info
+      </button>
+    </div>
+
+    <div class="panels">
+
+      <!-- ── Panel 0: Panoramica ───────────────────────────────────────── -->
+      <div class="panel active" id="panel-0">
+        <div class="card">
+          <div class="card-title">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Un'app desktop vera e propria
+          </div>
+          <div class="card-body">
+            Questa finestra <em>è</em> l'applicazione — nessun browser da aprire, nessun URL da digitare. Hai accesso a due suite distinte da un unico launcher.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+            Come è strutturata
+          </div>
+          <div class="card-body">
+            <div class="step">
+              <div class="step-num num-blue">1</div>
+              <div class="step-content"><strong>All'avvio</strong> — l'app lancia il server locale sul tuo PC (porta 3001).</div>
+            </div>
+            <div class="step">
+              <div class="step-num num-blue">2</div>
+              <div class="step-content"><strong>Launcher</strong> — scegli quale applicazione aprire dalla schermata principale.</div>
+            </div>
+            <div class="step">
+              <div class="step-num num-blue">3</div>
+              <div class="step-content"><strong>Privacy totale</strong> — tutto gira sul tuo PC. I file non lasciano mai il computer.</div>
+            </div>
+          </div>
+        </div>
+        <div class="app-preview">
+          <div class="app-preview-icon icon-ff">
+            <svg width="22" height="22" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M12 2l4 2.3v4.4L12 11 8 8.7V4.3L12 2z"/>
+              <path d="M4.5 12.5l4 2.3v4.4l-4 2.3-4-2.3v-4.4l4-2.3z"/>
+              <path d="M19.5 12.5l4 2.3v4.4l-4 2.3-4-2.3v-4.4l4-2.3z"/>
+            </svg>
+          </div>
+          <div class="app-preview-body">
+            <div class="app-preview-name">FileForge Studio</div>
+            <div class="app-preview-desc">Suite con 20 strumenti professionali per PDF, immagini, conversioni, firme e utilità.</div>
+            <div class="app-features">
+              <span class="feat-tag feat-ff">9 strumenti PDF</span>
+              <span class="feat-tag feat-ff">5 immagine</span>
+              <span class="feat-tag feat-ff">6 utilità</span>
+              <span class="feat-tag feat-ff">100% Offline</span>
+            </div>
+          </div>
+        </div>
+        <div class="app-preview">
+          <div class="app-preview-icon icon-ls">
+            <svg width="22" height="22" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
+          </div>
+          <div class="app-preview-body">
+            <div class="app-preview-name">LocalSync Bridge</div>
+            <div class="app-preview-desc">Trasferimento file e dati in tempo reale tra dispositivi sulla stessa rete Wi-Fi.</div>
+            <div class="app-features">
+              <span class="feat-tag feat-ls">LAN</span>
+              <span class="feat-tag feat-ls">Real-time</span>
+              <span class="feat-tag feat-ls">QR Code</span>
+              <span class="feat-tag feat-ls">Multi-utente</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Panel 1: PDF ──────────────────────────────────────────────── -->
+      <div class="panel" id="panel-1">
+        <div class="app-preview" style="margin-bottom:12px">
+          <div class="app-preview-icon icon-ff">
+            <svg width="22" height="22" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M12 2l4 2.3v4.4L12 11 8 8.7V4.3L12 2z"/>
+              <path d="M4.5 12.5l4 2.3v4.4l-4 2.3-4-2.3v-4.4l4-2.3z"/>
+              <path d="M19.5 12.5l4 2.3v4.4l-4 2.3-4-2.3v-4.4l4-2.3z"/>
+            </svg>
+          </div>
+          <div class="app-preview-body">
+            <div class="app-preview-name">FileForge — Strumenti PDF</div>
+            <div class="app-preview-desc">9 strumenti dedicati ai documenti PDF, dalla gestione base alle operazioni avanzate.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Gestione documenti
+          </div>
+          <div class="card-body">
+            <div class="tool-grid">
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></div>
+                <div><div class="tool-name">Compressore PDF</div><div class="tool-desc">Riduci il peso senza perdere qualità</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></div>
+                <div><div class="tool-name">Unisci PDF</div><div class="tool-desc">Combina più documenti in uno</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg></div>
+                <div><div class="tool-name">Dividi PDF</div><div class="tool-desc">Estrai pagine o intervalli</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg></div>
+                <div><div class="tool-name">Organizzatore</div><div class="tool-desc">Riordina le pagine drag-and-drop</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+                <div><div class="tool-name">Analizzatore PDF</div><div class="tool-desc">Estrai metadati e informazioni</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+                <div><div class="tool-name">Firma PDF</div><div class="tool-desc">Firme digitali con timestamp</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+            Conversioni PDF
+          </div>
+          <div class="card-body">
+            <div class="tool-grid">
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                <div><div class="tool-name">PDF a Word</div><div class="tool-desc">Converti in .docx modificabile</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+                <div><div class="tool-name">PDF a Immagini</div><div class="tool-desc">Esporta ogni pagina come PNG/JPG</div></div>
+              </div>
+              <div class="tool-item" style="grid-column:1/-1">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+                <div><div class="tool-name">Immagini a PDF</div><div class="tool-desc">Crea un PDF da una raccolta di immagini</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Panel 2: Media & Utilità ─────────────────────────────────── -->
+      <div class="panel" id="panel-2">
+        <div class="app-preview" style="margin-bottom:12px">
+          <div class="app-preview-icon icon-ff">
+            <svg width="22" height="22" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M12 2l4 2.3v4.4L12 11 8 8.7V4.3L12 2z"/>
+              <path d="M4.5 12.5l4 2.3v4.4l-4 2.3-4-2.3v-4.4l4-2.3z"/>
+              <path d="M19.5 12.5l4 2.3v4.4l-4 2.3-4-2.3v-4.4l4-2.3z"/>
+            </svg>
+          </div>
+          <div class="app-preview-body">
+            <div class="app-preview-name">FileForge — Media e Utilità</div>
+            <div class="app-preview-desc">5 strumenti immagine e 6 utilità per la produttività quotidiana.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Strumenti immagine
+          </div>
+          <div class="card-body">
+            <div class="tool-grid">
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg></div>
+                <div><div class="tool-name">Convertitore</div><div class="tool-desc">JPEG, PNG, WEBP in un click</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+                <div><div class="tool-name">Rimozione Sfondo</div><div class="tool-desc">Elimina lo sfondo con AI</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+                <div><div class="tool-name">HEIC Converter</div><div class="tool-desc">Converti foto iPhone in JPEG/PNG</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></div>
+                <div><div class="tool-name">Testo a Immagine</div><div class="tool-desc">Genera immagini tipografiche</div></div>
+              </div>
+              <div class="tool-item" style="grid-column:1/-1">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                <div><div class="tool-name">AI a SVG</div><div class="tool-desc">Converti immagini in grafica vettoriale SVG</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+            Utilità
+          </div>
+          <div class="card-body">
+            <div class="tool-grid">
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M20 14v.01M14 20h.01M20 17v3h-3"/></svg></div>
+                <div><div class="tool-name">QR Code</div><div class="tool-desc">Genera QR code personalizzati</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="3" y2="18"/><line x1="6" y1="4" x2="6" y2="20"/><line x1="9" y1="6" x2="9" y2="18"/><line x1="12" y1="4" x2="12" y2="20"/><line x1="15" y1="6" x2="15" y2="18"/><line x1="18" y1="4" x2="18" y2="20"/><line x1="21" y1="6" x2="21" y2="18"/></svg></div>
+                <div><div class="tool-name">Barcode</div><div class="tool-desc">Codici a barre in vari formati</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+                <div><div class="tool-name">Generatore Password</div><div class="tool-desc">Password sicure e personalizzabili</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                <div><div class="tool-name">Verifica Breach</div><div class="tool-desc">Controlla password compromesse</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
+                <div><div class="tool-name">Pulizia Metadati</div><div class="tool-desc">Rimuovi dati nascosti dai file</div></div>
+              </div>
+              <div class="tool-item">
+                <div class="tool-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+                <div><div class="tool-name">Vault Firme</div><div class="tool-desc">Archivia le tue firme digitali</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Panel 3: LocalSync ────────────────────────────────────────── -->
+      <div class="panel" id="panel-3">
+        <div class="app-preview" style="margin-bottom:12px">
+          <div class="app-preview-icon icon-ls">
+            <svg width="22" height="22" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
+          </div>
+          <div class="app-preview-body">
+            <div class="app-preview-name">LocalSync Bridge</div>
+            <div class="app-preview-desc">Il ponte tra PC e smartphone sulla rete domestica. Nessun cloud, nessun cavo.</div>
+            <div class="app-features">
+              <span class="feat-tag feat-ls">LAN</span>
+              <span class="feat-tag feat-ls">Real-time</span>
+              <span class="feat-tag feat-ls">PWA</span>
+              <span class="feat-tag feat-ls">Multi-utente</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Stream — Appunti condivisi
+          </div>
+          <div class="card-body">
+            <div class="step">
+              <div class="step-arr">
+                <svg width="13" height="13" fill="none" stroke="#334155" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+              <div class="step-content"><strong>Testo e codice</strong> — condividi appunti e snippet con syntax highlighting</div>
+            </div>
+            <div class="step">
+              <div class="step-arr">
+                <svg width="13" height="13" fill="none" stroke="#334155" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+              <div class="step-content"><strong>Link con anteprima</strong> — incolla un URL e vedi l'anteprima automatica</div>
+            </div>
+            <div class="step">
+              <div class="step-arr">
+                <svg width="13" height="13" fill="none" stroke="#334155" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+              <div class="step-content"><strong>Password</strong> — condividi credenziali in modo sicuro tra dispositivi</div>
+            </div>
+            <div class="step">
+              <div class="step-arr">
+                <svg width="13" height="13" fill="none" stroke="#334155" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+              <div class="step-content"><strong>Sync istantaneo</strong> — ogni modifica appare su tutti i dispositivi connessi</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            Cloud Transfer — File via LAN
+          </div>
+          <div class="card-body">
+            <div class="step">
+              <div class="step-arr">
+                <svg width="13" height="13" fill="none" stroke="#334155" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+              <div class="step-content"><strong>Carica da smartphone</strong> — invia file dal telefono direttamente al PC</div>
+            </div>
+            <div class="step">
+              <div class="step-arr">
+                <svg width="13" height="13" fill="none" stroke="#334155" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+              <div class="step-content"><strong>QR code</strong> — scansiona con iPhone o Android, nessun URL da digitare</div>
+            </div>
+            <div class="step">
+              <div class="step-arr">
+                <svg width="13" height="13" fill="none" stroke="#334155" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+              <div class="step-content"><strong>Download ZIP</strong> — scarica tutti i file ricevuti in un archivio con un clic</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            Solo rete locale <span class="badge badge-green" style="margin-left:4px">Nessun internet</span>
+          </div>
+          <div class="card-body">Tutto il traffico rimane sulla rete di casa. Funziona anche in reti senza accesso esterno.</div>
+        </div>
+      </div>
+
+      <!-- ── Panel 4: Info ──────────────────────────────────────────────── -->
+      <div class="panel" id="panel-4">
+        <div class="card">
+          <div class="card-title">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1.5 8.5a13 13 0 0121 0M5 12a10 10 0 0114 0M8.5 15.5a6 6 0 017 0M12 19h.01"/></svg>
+            Rete locale
+          </div>
+          <div class="card-body">
+            <div class="step">
+              <div class="step-num num-blue">1</div>
+              <div class="step-content"><strong>Al prossimo passo</strong> selezionerai l'interfaccia di rete — Wi-Fi o Ethernet.</div>
+            </div>
+            <div class="step">
+              <div class="step-num num-blue">2</div>
+              <div class="step-content"><strong>FileForge</strong> gira su <code style="background:#1e293b;padding:1px 5px;border-radius:3px;font-size:11px">localhost:3001</code> — nessuna rete necessaria.</div>
+            </div>
+            <div class="step">
+              <div class="step-num num-blue">3</div>
+              <div class="step-content"><strong>LocalSync</strong> richiede Wi-Fi attivo per collegare smartphone e tablet.</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            Account <span class="badge badge-orange" style="margin-left:4px">Passo successivo</span>
+          </div>
+          <div class="card-body">
+            <div class="step">
+              <div class="step-arr"><svg width="13" height="13" fill="none" stroke="#334155" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+              <div class="step-content">Creerai l'<strong>account Amministratore</strong> dopo la configurazione rete.</div>
+            </div>
+            <div class="step">
+              <div class="step-arr"><svg width="13" height="13" fill="none" stroke="#334155" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+              <div class="step-content">L'admin può aggiungere altri utenti e gestire gli account da LocalSync.</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+            Aggiornamenti automatici
+          </div>
+          <div class="card-body">
+            L'app controlla nuove versioni all'avvio e ogni 4 ore. Il download avviene in background; ogni aggiornamento è firmato digitalmente.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /panels -->
+
+    <div class="dots" id="dots"></div>
+
+    <div class="footer">
+      <button class="btn-skip" id="btn-skip" onclick="skip()">Salta</button>
+      <button class="btn-next" id="btn-next" onclick="next()">
+        Avanti
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    const TOTAL = 5;
+    let current = 0;
+
+    const dotsEl = document.getElementById('dots');
+    for (let i = 0; i < TOTAL; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      d.onclick = () => goTo(i);
+      dotsEl.appendChild(d);
+    }
+
+    function goTo(idx) {
+      document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+      document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+      document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+      current = idx;
+      updateFooter();
+    }
+
+    function next() {
+      if (current < TOTAL - 1) goTo(current + 1);
+      else window.electronAPI.closeWelcome();
+    }
+
+    function skip() {
+      window.electronAPI.closeWelcome();
+    }
+
+    function updateFooter() {
+      const btnNext = document.getElementById('btn-next');
+      const btnSkip = document.getElementById('btn-skip');
+      if (current === TOTAL - 1) {
+        btnNext.innerHTML = `Inizia la configurazione <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
+        btnSkip.style.visibility = 'hidden';
+      } else {
+        btnNext.innerHTML = `Avanti <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
+        btnSkip.style.visibility = 'visible';
+      }
+    }
+  </script>
+</body>
+</html>
