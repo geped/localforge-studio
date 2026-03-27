@@ -52,6 +52,20 @@ function lsGetUsers() {
 function lsSaveUsers(users) {
   try { fs.writeFileSync(USERS_FILE, JSON.stringify(users)); } catch {}
 }
+
+// ─── App config (save path, ecc.) ────────────────────────────────────────────
+const LS_APP_CONFIG_FILE = path.join(LS_CONFIG_DIR, 'localsync-config.json');
+function getAppConfig() {
+  try { return JSON.parse(fs.readFileSync(LS_APP_CONFIG_FILE, 'utf8')); } catch { return {}; }
+}
+function saveAppConfig(cfg) {
+  try { fs.writeFileSync(LS_APP_CONFIG_FILE, JSON.stringify(cfg)); } catch {}
+}
+function getSavePath() {
+  const cfg = getAppConfig();
+  return cfg.savePath || path.join(os.homedir(), 'Desktop', 'LocalSync_PC');
+}
+
 function lsFindUserByToken(token) {
   if (!token) return null;
   return lsGetUsers().find(u => (u.tokens || []).includes(token));
@@ -509,6 +523,23 @@ ensureNextRuntime().then(() => {
     res.sendFile(path.join(lsPublicDir, 'index.html'))
   );
 
+  // ── Config: lettura percorso salvataggio ─────────────────────────────────────
+  server.get('/localsync/api/config', requireAuth, (req, res) => {
+    res.json({ savePath: getSavePath() });
+  });
+
+  // ── Config: aggiornamento percorso salvataggio (solo admin) ──────────────────
+  server.post('/localsync/api/config', requireAuth, requireAdmin, (req, res) => {
+    const { savePath } = req.body;
+    if (!savePath || typeof savePath !== 'string' || !savePath.trim()) {
+      return res.status(400).json({ error: 'Percorso non valido' });
+    }
+    const cfg = getAppConfig();
+    cfg.savePath = savePath.trim();
+    saveAppConfig(cfg);
+    res.json({ success: true, savePath: cfg.savePath });
+  });
+
   // ── LocalSync: QR Code ──────────────────────────────────────────────────────
   server.get('/localsync/api/qrcode', async (req, res) => {
     const localIP = getLocalIP();
@@ -589,11 +620,11 @@ ensureNextRuntime().then(() => {
     const { fileName } = req.body;
     const username = req.lsUser?.username;
     if (!fileName || !username) return res.status(400).json({ error: 'Dati mancanti' });
-    const PCIOS_DIR = path.join(os.homedir(), 'Desktop', 'PcIOS');
-    if (!fs.existsSync(PCIOS_DIR)) fs.mkdirSync(PCIOS_DIR, { recursive: true });
+    const saveDir = getSavePath();
+    if (!fs.existsSync(saveDir)) fs.mkdirSync(saveDir, { recursive: true });
     const sourcePath = path.join(getUserUploadDir(username), fileName);
     const cleanName  = fileName.substring(fileName.indexOf('-') + 1);
-    const destPath   = path.join(PCIOS_DIR, cleanName);
+    const destPath   = path.join(saveDir, cleanName);
     if (!fs.existsSync(sourcePath)) return res.status(404).json({ error: 'File non trovato' });
     fs.copyFile(sourcePath, destPath, (err) => {
       if (err) return res.status(500).json({ error: 'Errore copia' });

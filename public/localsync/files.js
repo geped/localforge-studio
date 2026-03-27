@@ -1,4 +1,22 @@
 // Gestione file (upload, download, lista)
+let _currentSavePath = '';
+
+function loadSavePath() {
+    const token = localStorage.getItem('ls_auth_token') || '';
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    fetch('/localsync/api/config', { headers })
+        .then(r => r.json())
+        .then(d => {
+            if (d.savePath) {
+                _currentSavePath = d.savePath;
+                const el = document.getElementById('savePathDisplay');
+                if (el) el.textContent = d.savePath;
+            }
+        })
+        .catch(() => {});
+}
+
 function _authHeaders(extra) {
     const token = localStorage.getItem('ls_auth_token') || '';
     const h = { 'Content-Type': 'application/json', ...extra };
@@ -95,8 +113,8 @@ function loadFileList() {
         .catch(err => console.warn('Caricamento file list fallito:', err.message));
 }
 
-socket.on('connect', () => loadFileList());
-if (socket.connected) loadFileList();
+socket.on('connect', () => { loadFileList(); loadSavePath(); });
+if (socket.connected) { loadFileList(); loadSavePath(); }
 
 function setupSearchBar() {
     if (document.getElementById('localSearchInput')) return;
@@ -208,7 +226,12 @@ function moveToPcIos(fileName) {
         method: 'POST',
         headers: _authHeaders({}),
         body: JSON.stringify({ fileName })
-    }).then(r => r.json()).then(d => { if (d.success) showToast('Spostato su PC!'); });
+    }).then(r => r.json()).then(d => {
+        if (d.success) {
+            const folder = _currentSavePath.split(/[\\/]/).pop() || 'PC';
+            showToast('Spostato in ' + folder + '!');
+        }
+    });
 }
 
 function deleteFile(fileName) {

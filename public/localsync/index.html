@@ -462,6 +462,40 @@
 </div><!-- /authOverlay -->
 
 
+<!-- ══ Settings Modal ════════════════════════════════════════════════════════ -->
+<div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden"
+     style="background:rgba(0,0,0,0.75);backdrop-filter:blur(8px)" onclick="closeSettings()">
+    <div class="ff-card p-6 flex flex-col gap-5 max-w-sm w-full shadow-2xl" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between">
+            <h3 class="font-bold text-base" style="color:var(--text)">Impostazioni LocalSync</h3>
+            <button onclick="closeSettings()" class="btn btn-ghost p-1.5 rounded-lg" style="color:var(--muted)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-semibold uppercase tracking-wider" style="color:var(--muted)">
+                Cartella di destinazione (pulsante "PC")
+            </label>
+            <p class="text-xs" style="color:var(--muted);opacity:0.7">
+                I file spostati su PC verranno salvati in questa cartella. Inserisci un percorso assoluto (es. <code style="color:var(--accent)">C:\Users\nome\Desktop\MiaCartella</code>).
+            </p>
+            <input type="text" id="savePathInput"
+                   class="w-full text-sm outline-none p-2.5 rounded-lg font-mono transition"
+                   style="background:var(--card-alt);border:1px solid var(--border);color:var(--text)"
+                   placeholder="Es. C:\Users\nome\Desktop\LocalSync_PC">
+            <p id="settingsError" class="text-xs hidden" style="color:var(--destructive)"></p>
+        </div>
+
+        <div class="flex gap-2">
+            <button onclick="closeSettings()" class="btn btn-ghost flex-1">Annulla</button>
+            <button onclick="savePath()" class="btn btn-primary flex-1">Salva</button>
+        </div>
+    </div>
+</div>
+
 <!-- ══ QR Modal ════════════════════════════════════════════════════════════════ -->
 <div id="qrModal" class="fixed inset-0 z-40 flex items-center justify-center p-4 hidden"
      style="background:rgba(0,0,0,0.75);backdrop-filter:blur(8px)" onclick="toggleQr(false)">
@@ -502,6 +536,12 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>
             <span class="hidden sm:inline">Menu</span>
+        </button>
+        <!-- Impostazioni -->
+        <button onclick="openSettings()" class="btn btn-ghost" title="Impostazioni">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
         </button>
         <!-- Collega mobile -->
         <button onclick="toggleQr(true)" class="btn btn-ghost hidden md:inline-flex" title="Collega dispositivo">
@@ -643,6 +683,20 @@
 
         <!-- Lista file -->
         <ul id="fileList" class="flex-1 overflow-y-auto px-3 pb-3 space-y-2 overscroll-contain"></ul>
+
+        <!-- Footer: percorso salvataggio -->
+        <div class="px-3 py-2.5 shrink-0 flex items-center gap-2" style="border-top:1px solid var(--border)">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--muted)">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+            </svg>
+            <span id="savePathDisplay" class="text-xs truncate flex-1 font-mono" style="color:var(--muted)" title="Percorso salvataggio PC">—</span>
+            <button onclick="openSettings()" class="shrink-0 transition" style="color:var(--muted)" title="Modifica percorso"
+                    onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+            </button>
+        </div>
     </aside>
 </div>
 
@@ -683,5 +737,54 @@
     <script src="auth.js"></script>
     <script src="stream.js"></script>
     <script src="files.js"></script>
+
+<script>
+function openSettings() {
+    const modal = document.getElementById('settingsModal');
+    const input = document.getElementById('savePathInput');
+    const errEl = document.getElementById('settingsError');
+    const display = document.getElementById('savePathDisplay');
+    if (input && display) input.value = display.textContent === '—' ? '' : display.textContent;
+    if (errEl) errEl.classList.add('hidden');
+    modal.classList.remove('hidden');
+}
+
+function closeSettings() {
+    document.getElementById('settingsModal').classList.add('hidden');
+}
+
+function savePath() {
+    const input = document.getElementById('savePathInput');
+    const errEl = document.getElementById('settingsError');
+    const val   = input?.value?.trim();
+    if (!val) {
+        errEl.textContent = 'Inserisci un percorso valido.';
+        errEl.classList.remove('hidden');
+        return;
+    }
+    const token = localStorage.getItem('ls_auth_token') || '';
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    fetch('/localsync/api/config', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ savePath: val })
+    }).then(r => r.json()).then(d => {
+        if (d.success) {
+            const display = document.getElementById('savePathDisplay');
+            if (display) display.textContent = d.savePath;
+            if (typeof _currentSavePath !== 'undefined') window._currentSavePath = d.savePath;
+            closeSettings();
+            showToast('Percorso aggiornato!');
+        } else {
+            errEl.textContent = d.error || 'Errore salvataggio.';
+            errEl.classList.remove('hidden');
+        }
+    }).catch(() => {
+        errEl.textContent = 'Errore di rete.';
+        errEl.classList.remove('hidden');
+    });
+}
+</script>
 </body>
 </html>
