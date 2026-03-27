@@ -480,12 +480,20 @@
                 Cartella di destinazione (pulsante "PC")
             </label>
             <p class="text-xs" style="color:var(--muted);opacity:0.7">
-                I file spostati su PC verranno salvati in questa cartella. Inserisci un percorso assoluto (es. <code style="color:var(--accent)">C:\Users\nome\Desktop\MiaCartella</code>).
+                I file spostati su PC verranno salvati in questa cartella.
             </p>
-            <input type="text" id="savePathInput"
-                   class="w-full text-sm outline-none p-2.5 rounded-lg font-mono transition"
-                   style="background:var(--card-alt);border:1px solid var(--border);color:var(--text)"
-                   placeholder="Es. C:\Users\nome\Desktop\LocalSync_PC">
+            <div class="flex gap-2">
+                <input type="text" id="savePathInput" readonly
+                       class="flex-1 text-sm outline-none p-2.5 rounded-lg font-mono transition cursor-default"
+                       style="background:var(--card-alt);border:1px solid var(--border);color:var(--text)"
+                       placeholder="Nessuna cartella selezionata">
+                <button onclick="pickSaveFolder()" class="btn btn-primary shrink-0 px-3 gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                    </svg>
+                    Sfoglia
+                </button>
+            </div>
             <p id="settingsError" class="text-xs hidden" style="color:var(--destructive)"></p>
         </div>
 
@@ -740,13 +748,23 @@
 
 <script>
 function openSettings() {
-    const modal = document.getElementById('settingsModal');
-    const input = document.getElementById('savePathInput');
-    const errEl = document.getElementById('settingsError');
+    const modal   = document.getElementById('settingsModal');
+    const input   = document.getElementById('savePathInput');
+    const errEl   = document.getElementById('settingsError');
     const display = document.getElementById('savePathDisplay');
     if (input && display) input.value = display.textContent === '—' ? '' : display.textContent;
     if (errEl) errEl.classList.add('hidden');
     modal.classList.remove('hidden');
+}
+
+async function pickSaveFolder() {
+    if (window.electronAPI?.pickFolder) {
+        const folder = await window.electronAPI.pickFolder();
+        if (folder) {
+            document.getElementById('savePathInput').value = folder;
+            document.getElementById('settingsError').classList.add('hidden');
+        }
+    }
 }
 
 function closeSettings() {

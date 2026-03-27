@@ -26,4 +26,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getNetworkInterfaces: () => ipcRenderer.invoke('get-network-interfaces'),
   getPreferredIp: () => ipcRenderer.invoke('get-preferred-ip'),
   setPreferredIp: (ip) => ipcRenderer.invoke('set-preferred-ip', ip),
+
+  // Selezione cartella nativa
+  pickFolder: () => ipcRenderer.invoke('pick-folder'),
 });

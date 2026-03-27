@@ -343,6 +343,15 @@ ipcMain.handle('get-network-interfaces', () => {
 ipcMain.handle('get-preferred-ip', () => Store.get('preferredIp', null));
 ipcMain.handle('set-preferred-ip', (_, ip) => { Store.set('preferredIp', ip); return true; });
 
+ipcMain.handle('pick-folder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory', 'createDirectory'],
+    title: 'Scegli cartella di destinazione per i file ricevuti',
+  });
+  if (result.canceled || !result.filePaths.length) return null;
+  return result.filePaths[0];
+});
+
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
   Store.load();
